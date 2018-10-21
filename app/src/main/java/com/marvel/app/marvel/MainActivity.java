@@ -65,6 +65,20 @@ public class MainActivity extends AppCompatActivity implements Observer {
         lstCharacters = (ListView) findViewById(R.id.list_view);
         txtSearch = (android.support.v7.widget.SearchView)findViewById(R.id.search);
 
+
+
+        btnRevert = (ImageButton)findViewById(R.id.btnRevert);
+        btnRevert.setOnClickListener(Revert);
+        rl_progress = (RelativeLayout) findViewById(R.id.loadingPanel);
+        rl_progress.setVisibility(View.VISIBLE);
+
+        InitializeItems();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
         txtSearch.setOnQueryTextListener(new android.support.v7.widget.SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -97,18 +111,6 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
 
         });
-
-        btnRevert = (ImageButton)findViewById(R.id.btnRevert);
-        btnRevert.setOnClickListener(Revert);
-        rl_progress = (RelativeLayout) findViewById(R.id.loadingPanel);
-        rl_progress.setVisibility(View.VISIBLE);
-
-        InitializeItems();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
 
         registerReceiver(receiver, new IntentFilter(ServiceAPI.CHARACTERLIST));
         BroadcastListObserver.getInstance().deleteObservers();
@@ -153,6 +155,9 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
     private void InitializeItems()
     {
+        list_item_local.clear();
+
+
         Intent intent = new Intent(this, ServiceAPI.class);
         intent.setAction(ServiceAPI.CHARACTERLIST);
         Bundle bundle = new Bundle();
