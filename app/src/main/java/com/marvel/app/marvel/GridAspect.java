@@ -6,7 +6,6 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,18 +14,14 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,17 +30,17 @@ import java.util.Observer;
 
 import model.Character;
 import model.MarvelImage;
-import worker.BroadcastListObserver;
+import worker.BroadcastGridObserver;
 import worker.BroadcastReceiverAPI;
 import worker.ServiceAPI;
 
 import static com.nostra13.universalimageloader.core.ImageLoaderConfiguration.createDefault;
 
-public class MainActivity extends AppCompatActivity implements Observer {
+public class GridAspect extends AppCompatActivity implements Observer {
 
     BroadcastReceiverAPI receiver = new BroadcastReceiverAPI();
     ArrayList<Character> list_item_local = new ArrayList<Character>();
-    ListView lstCharacters;
+    GridView lstCharacters;
     android.support.v7.widget.SearchView txtSearch;
     ListAdapterCharacter adapter;
     ImageButton btnRevert;
@@ -58,11 +53,11 @@ public class MainActivity extends AppCompatActivity implements Observer {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_grid_aspect);
 
         ImageLoader.getInstance().init(createDefault(this));
 
-        lstCharacters = (ListView) findViewById(R.id.list_view);
+        lstCharacters = (GridView) findViewById(R.id.grid_view);
         txtSearch = (android.support.v7.widget.SearchView)findViewById(R.id.search);
 
         txtSearch.setOnQueryTextListener(new android.support.v7.widget.SearchView.OnQueryTextListener() {
@@ -72,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
                 pageCount = 0;
 
                 Intent intent = new Intent(getApplicationContext(), ServiceAPI.class);
-                intent.setAction(ServiceAPI.CHARACTERLIST);
+                intent.setAction(ServiceAPI.CHARACTERGRID);
                 Bundle bundle = new Bundle();
                 intent.putExtras(bundle);
                 int threshold = 20;
@@ -110,9 +105,9 @@ public class MainActivity extends AppCompatActivity implements Observer {
     protected void onResume() {
         super.onResume();
 
-        registerReceiver(receiver, new IntentFilter(ServiceAPI.CHARACTERLIST));
-        BroadcastListObserver.getInstance().deleteObservers();
-        BroadcastListObserver.getInstance().addObserver(this);
+        registerReceiver(receiver, new IntentFilter(ServiceAPI.CHARACTERGRID));
+        BroadcastGridObserver.getInstance().deleteObservers();
+        BroadcastGridObserver.getInstance().addObserver(this);
 
     }
 
@@ -138,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
         this.data = data;
         rl_progress.setVisibility(View.GONE);
 
-        ArrayList<Character> list_item = (ArrayList<Character>)((Intent)data).getSerializableExtra(ServiceAPI.CHARACTERLIST);
+        ArrayList<Character> list_item = (ArrayList<Character>)((Intent)data).getSerializableExtra(ServiceAPI.CHARACTERGRID);
         if(orderBy) {
             Collections.reverse(list_item_local);
             list_item_local.addAll(list_item);
@@ -154,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
     private void InitializeItems()
     {
         Intent intent = new Intent(this, ServiceAPI.class);
-        intent.setAction(ServiceAPI.CHARACTERLIST);
+        intent.setAction(ServiceAPI.CHARACTERGRID);
         Bundle bundle = new Bundle();
         intent.putExtras(bundle);
         startService(intent);
@@ -201,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
             Character entry= (Character) parent.getAdapter().getItem(position);
             //Toast.makeText(getApplicationContext(), entry.getId(), Toast.LENGTH_SHORT).show();
             Intent intent = null; //new Intent(TablesActivity.this, OrderActivity.class);
-            intent = new Intent(MainActivity.this, DetailCharacter.class);
+            intent = new Intent(GridAspect.this, DetailCharacter.class);
             intent.putExtra("id", entry.getId());
             intent.putExtra("description", entry.getDescription());
             intent.putExtra("thumbnail", entry.getThumbnail().getImageUrl(MarvelImage.Size.DETAIL));
@@ -234,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
                     rl_progress.setVisibility(View.VISIBLE);
 
                     Intent intent = new Intent(getApplicationContext(), ServiceAPI.class);
-                    intent.setAction(ServiceAPI.CHARACTERLIST);
+                    intent.setAction(ServiceAPI.CHARACTERGRID);
                     Bundle bundle = new Bundle();
                     intent.putExtras(bundle);
                     intent.putExtra("limit", "" + threshold);
@@ -262,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
     {
         private ArrayList<Character>originalData = null;
         private ArrayList<Character>filteredData = null;
-        private ItemFilter mFilter = new ItemFilter();
+        private ListAdapterCharacter.ItemFilter mFilter = new ListAdapterCharacter.ItemFilter();
 
         public int getCount() {
             return filteredData.size();
@@ -278,10 +273,10 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
         ListAdapterCharacter(Context context, ArrayList<Character> listtables_ad)
         {
-            super(context, R.layout.character_item, listtables_ad);
+            super(context, R.layout.character_item_grid, listtables_ad);
             originalData = listtables_ad;
             filteredData = listtables_ad;
-         }
+        }
 
         public View getView(int position, View convertView, ViewGroup parent)
         {
@@ -290,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
             if (row==null)
             {
                 LayoutInflater inflater=getLayoutInflater();
-                row=inflater.inflate(R.layout.character_item, parent, false);
+                row=inflater.inflate(R.layout.character_item_grid, parent, false);
                 row.setTag(R.id.listview_item_title, row.findViewById(R.id.listview_item_title));
                 row.setTag(R.id.listview_image, row.findViewById(R.id.listview_image));
 

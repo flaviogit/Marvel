@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.marvel.app.marvel.MainActivity">
+    tools:context="com.marvel.app.marvel.GridAspect">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,6 +17,7 @@
             android:layout_height="50dp"
             android:orientation="horizontal">
 
+
             <android.support.v7.widget.SearchView
                 style="@style/Widget.AppCompat.Button.Borderless.Colored"
                 android:id="@+id/search"
@@ -24,6 +25,7 @@
                 android:layout_height="wrap_content"
                 android:clickable="true"
                 android:focusable="true" />
+
 
             <ImageButton
                 style="@style/Widget.AppCompat.Button.Colored"
@@ -42,12 +44,19 @@
 
         </LinearLayout>
 
-        <ListView
-            android:id="@+id/list_view"
+        <GridView
+            android:id="@+id/grid_view"
             android:layout_width="match_parent"
-            android:layout_height="fill_parent" />
-    </LinearLayout>
+            android:layout_height="fill_parent"
+            android:gravity="center"
+            android:horizontalSpacing="5dp"
+            android:verticalSpacing="5dp"
+            android:padding="5dp"
+            android:numColumns="auto_fit"
 
+            />
+
+    </LinearLayout>
 
     <RelativeLayout
         android:id="@+id/loadingPanel"
