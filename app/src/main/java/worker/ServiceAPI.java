@@ -118,11 +118,31 @@ public class ServiceAPI extends IntentService {
 
                 InitializeCharacterListMaven(limit, offset, nameStartsWith);
             }
-            else if(CHARACTERGRID.equals(action))
-                InitializeCharacterGridMaven();
+            else if(CHARACTERGRID.equals(action)) {
+                String limit = intent.getExtras().getString("limit");
+                String offset = intent.getExtras().getString("offset");
+                String nameStartsWith = intent.getExtras().getString("nameStartsWith");
+
+                if(limit == null || limit.isEmpty())
+                    limit = "20";
+                if(offset == null || offset.isEmpty())
+                    offset="0";
+                if(nameStartsWith == null || nameStartsWith.isEmpty())
+                    nameStartsWith="";
+
+                InitializeCharacterGridMaven(limit, offset, nameStartsWith);
+            }
             else if(CHARACTERDETAIL.equals(action)) {
                 String id = intent.getExtras().getString("id");
-                InitializeCharacterDetailMaven(id);
+                String limit = intent.getExtras().getString("limit");
+                String offset = intent.getExtras().getString("offset");
+
+                if(limit == null || limit.isEmpty())
+                    limit = "20";
+                if(offset == null || offset.isEmpty())
+                    offset="0";
+
+                InitializeCharacterDetailMaven(id, limit, offset);
             }
         }
     }
@@ -174,7 +194,7 @@ public class ServiceAPI extends IntentService {
         sendBroadcast(intent);
     }
 
-    private void InitializeCharacterGridMaven()
+    private void InitializeCharacterGridMaven(String limit, String offset, String nameStartsWith)
     {
         TimeProvider timeProvider = new TimeProvider();
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
@@ -188,7 +208,11 @@ public class ServiceAPI extends IntentService {
                 .build();
 
         CharacterApi c = retrofit.create(CharacterApi.class);
-        Call<MarvelResponse<Characters>> call = c.getCharacters();
+        Call<MarvelResponse<Characters>> call; // = c.getCharacters(limit, offset, nameStartsWith);
+        if(nameStartsWith.isEmpty())
+            call = c.getCharacters(limit, offset);
+        else
+            call = c.getCharacters(limit, offset, nameStartsWith);
 
         try {
             heroList = call.execute();
@@ -214,7 +238,7 @@ public class ServiceAPI extends IntentService {
         sendBroadcast(intent);
     }
 
-    private void InitializeCharacterDetailMaven(String id)
+    private void InitializeCharacterDetailMaven(String id, String limit, String offset)
     {
         TimeProvider timeProvider = new TimeProvider();
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
@@ -229,7 +253,7 @@ public class ServiceAPI extends IntentService {
 
         ComicApi c = retrofit.create(ComicApi.class);
         //Call<List<Character>> call = c.getCharacters();
-        Call<MarvelResponse<Comics>> call = c.getCharacterComics(id);//"1009146");
+        Call<MarvelResponse<Comics>> call = c.getCharacterComics(id, limit, offset);//"1009146");
 
         try {
             comicList = call.execute();

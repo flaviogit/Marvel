@@ -21,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -57,7 +58,7 @@ public class DetailCharacter extends AppCompatActivity  implements Observer {
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
-    private String id = "";
+    private static String id = "";
     private String description = "";
     private String thumbnail = "";
     private ImageView image_ch = null;
@@ -72,7 +73,7 @@ public class DetailCharacter extends AppCompatActivity  implements Observer {
     private static ArrayList<Comic> list_item = new ArrayList<Comic>();
     private static ComicFragment.ListAdapterComic adapter2;
 
-    RelativeLayout rl_progress;
+    private static RelativeLayout rl_progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -161,10 +162,17 @@ public class DetailCharacter extends AppCompatActivity  implements Observer {
 
         rl_progress.setVisibility(View.GONE);
 
-        list_item = (ArrayList<Comic>)((Intent)data).getSerializableExtra(ServiceAPI.CHARACTERDETAIL);
+        ArrayList<Comic> list_item_page = (ArrayList<Comic>)((Intent)data).getSerializableExtra(ServiceAPI.CHARACTERDETAIL);
+        //list_item = (ArrayList<Comic>)((Intent)data).getSerializableExtra(ServiceAPI.CHARACTERDETAIL);
+
+        /*
+        for(Comic item : list_item_page)
+            list_item.add(item);
+        */
         //mViewPager.getAdapter().notifyDataSetChanged();
         //adapter2.notifyDataSetChanged();
-        adapter2.updateReceiptsList(list_item);
+        //list_item.addAll((ArrayList<Comic>)((Intent)data).getSerializableExtra(ServiceAPI.CHARACTERDETAIL));
+        adapter2.updateReceiptsList(list_item_page);
     }
 
     private void RefreshDetailImage(String path)
@@ -294,6 +302,7 @@ public class DetailCharacter extends AppCompatActivity  implements Observer {
         ListAdapterComic adapter;
         private Observable observable;
         private Object data;
+        private int pageCount = 0;
 
         private static final String ARG_LIST = "comics";
 
@@ -320,6 +329,7 @@ public class DetailCharacter extends AppCompatActivity  implements Observer {
             //textView.setText(getArguments().getString(ARG_DESCRIPTION));
             //ArrayList<Comic> list_item = (ArrayList<Comic>) getArguments().getSerializable(ARG_LIST);
             lstComics = (ListView) rootView.findViewById(R.id.list_view);
+            lstComics.setOnScrollListener(scrollList);
             //new MavenConnection().execute();
 
             //if(list_item != null) {
@@ -334,6 +344,55 @@ public class DetailCharacter extends AppCompatActivity  implements Observer {
             return rootView;
         }
 
+        private AbsListView.OnScrollListener scrollList = new AbsListView.OnScrollListener() {
+
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                int threshold = 20;
+                int count = lstComics.getCount();
+
+                if (scrollState == SCROLL_STATE_IDLE) {
+                    boolean refresh = false;
+                    if(lstComics.getFirstVisiblePosition() == 0 && pageCount > 1)
+                    {
+                        //refresh = true;
+                        //pageCount--;
+                    }
+                    if (lstComics.getLastVisiblePosition() == ((threshold * (pageCount+1))-1))
+                    {
+                        refresh = true;
+                        //pageCount++;
+                    }
+                    if (refresh) {//>= count - threshold) {// && pageCount < 2) {
+                        rl_progress.setVisibility(View.VISIBLE);
+
+                        Intent intent = new Intent(view.getRootView().getContext(), ServiceAPI.class);
+                        intent.setAction(ServiceAPI.CHARACTERDETAIL);
+                        Bundle bundle = new Bundle();
+                        intent.putExtras(bundle);
+                        intent.putExtra("id", id);
+                        intent.putExtra("limit", "" + threshold);
+                        if(pageCount == 0)
+                            intent.putExtra("offset", "" + threshold);
+                        else
+                            intent.putExtra("offset", "" + (threshold * (pageCount+1)));
+
+                        //intent.putExtra("nameStartsWith", txtSearch.getQuery().toString());
+                        pageCount++;
+
+                        view.getRootView().getContext().startService(intent);
+                    }
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount,
+                                 int totalItemCount) {
+
+            }
+
+        };
+
         class ListAdapterComic extends ArrayAdapter<Comic>
         {
             ArrayList<Comic> _listtables_ad;
@@ -344,7 +403,7 @@ public class DetailCharacter extends AppCompatActivity  implements Observer {
             }
 
             public void updateReceiptsList(ArrayList<Comic> newlist) {
-                _listtables_ad.clear();
+                //_listtables_ad.clear();
                 _listtables_ad.addAll(newlist);
                 this.notifyDataSetChanged();
             }

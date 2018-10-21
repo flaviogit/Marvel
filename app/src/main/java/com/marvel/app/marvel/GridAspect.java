@@ -241,7 +241,7 @@ public class GridAspect extends AppCompatActivity implements Observer {
                     if(pageCount == 0)
                         intent.putExtra("offset", "" + threshold);
                     else
-                        intent.putExtra("offset", "" + (threshold * pageCount));
+                        intent.putExtra("offset", "" + (threshold * (pageCount+1)));
 
                     intent.putExtra("nameStartsWith", txtSearch.getQuery().toString());
                     pageCount++;
