@@ -263,28 +263,13 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
     };
 
-    class ListAdapterCharacter extends ArrayAdapter<Character> implements Filterable
+    class ListAdapterCharacter extends ArrayAdapter<Character>
     {
-        private ArrayList<Character>originalData = null;
         private ArrayList<Character>filteredData = null;
-        private ItemFilter mFilter = new ItemFilter();
-
-        public int getCount() {
-            return filteredData.size();
-        }
-
-        public Character getItem(int position) {
-            return filteredData.get(position);
-        }
-
-        public long getItemId(int position) {
-            return position;
-        }
 
         ListAdapterCharacter(Context context, ArrayList<Character> listtables_ad)
         {
             super(context, R.layout.character_item, listtables_ad);
-            originalData = listtables_ad;
             filteredData = listtables_ad;
          }
 
@@ -307,22 +292,14 @@ public class MainActivity extends AppCompatActivity implements Observer {
             String path = filteredData.get(position).getThumbnail().getImageUrl(MarvelImage.Size.LANDSCAPE_SMALL);
 
             DisplayImageOptions options = new DisplayImageOptions.Builder()
-                    //.showImageOnLoading(R.drawable.placeholder) // resource or drawable
-                    .showImageForEmptyUri(R.drawable.placeholder) // resource or drawable
-                    .showImageOnFail(R.drawable.placeholder) // resource or drawable
-                    .resetViewBeforeLoading(false)  // default
+                    .showImageForEmptyUri(R.drawable.placeholder)
+                    .showImageOnFail(R.drawable.placeholder)
+                    .resetViewBeforeLoading(false)
                     .delayBeforeLoading(0)
-                    .cacheInMemory(true) // default
-                    .cacheOnDisk(true) // default
-                    /*.preProcessor(...)
-		.postProcessor(...)
-		.extraForDownloader(...)*/
-                    .considerExifParams(false) // default
-                    //.imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2) // default
-                    .bitmapConfig(Bitmap.Config.ARGB_8888) // default
-                    //.decodingOptions(...)
-                    //.displayer(new SimpleBitmapDisplayer()) // default
-                    //.handler(new Handler()) // default
+                    .cacheInMemory(true)
+                    .cacheOnDisk(true)
+                    .considerExifParams(false)
+                    .bitmapConfig(Bitmap.Config.ARGB_8888)
                     .build();
 
             ImageLoader imageLoader = ImageLoader.getInstance();
@@ -332,46 +309,5 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
         }
 
-
-        public Filter getFilter() {
-            return mFilter;
-        }
-
-        private class ItemFilter extends Filter {
-            @Override
-            protected FilterResults performFiltering(CharSequence constraint) {
-
-                String filterString = constraint.toString().toLowerCase();
-
-                FilterResults results = new FilterResults();
-
-                final ArrayList<Character> list = originalData;
-
-                int count = list.size();
-                final ArrayList<Character> nlist = new ArrayList<Character>(count);
-
-                String filterableString ;
-
-                for (int i = 0; i < count; i++) {
-                    filterableString = list.get(i).getName();
-                    if (filterableString.toLowerCase().contains(filterString)) {
-                        nlist.add(list.get(i));
-                    }
-                }
-
-                results.values = nlist;
-                results.count = nlist.size();
-
-                return results;
-            }
-
-            @SuppressWarnings("unchecked")
-            @Override
-            protected void publishResults(CharSequence constraint, FilterResults results) {
-                filteredData = (ArrayList<Character>) results.values;
-                notifyDataSetChanged();
-            }
-
-        }
     }
 }
